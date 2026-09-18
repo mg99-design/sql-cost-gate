@@ -32,6 +32,7 @@ jobs:
 
     steps:
       - name: Validate PR event and policy inputs
+        id: input_validate
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
@@ -170,10 +171,15 @@ jobs:
       - name: Apply SQL cost-gate verdict
         if: always()
         env:
+          INPUT_VALIDATED: ${{ steps.input_validate.outcome }}
           SCAN_EXIT: ${{ steps.sql_scan.outputs.exit_code }}
           BUNDLE_READY: ${{ steps.sql_scan.outputs.bundle_ready }}
           BUNDLE_VERIFIED: ${{ steps.bundle_verify.outcome }}
         run: |
+          if [ "$INPUT_VALIDATED" != "success" ]; then
+            echo "SQL cost gate configuration is invalid." >&2
+            exit 1
+          fi
           if [ "$BUNDLE_READY" != "true" ] && [ "$SCAN_EXIT" = "0" ]; then
             echo "SQL cost gate produced no evidence bundle." >&2
             exit 1
