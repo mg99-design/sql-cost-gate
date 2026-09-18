@@ -1,0 +1,3 @@
+# Runtime dependency for the minimal SQL cost-gate distribution.
+# Parser behavior and identities are version-bound; bump deliberately.
+sqlglot==30.18.0
